@@ -13,6 +13,10 @@ void Device::connect(Device* device) {
     connections.push_back(device);
 }
 
+vector<Device*> Device::getConnections() const {
+    return connections;
+}
+
 void Device::receive(Frame frame, Device* sender) {
 
     cout << "[" << id << "] received frame from ["

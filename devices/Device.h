@@ -20,6 +20,8 @@ public:
     string getId() const;
 
     void connect(Device* device);
+    
+    vector<Device*> getConnections() const;
 
     // UPDATED: now receives Frame
     virtual void receive(Frame frame, Device* sender);

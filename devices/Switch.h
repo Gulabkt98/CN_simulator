@@ -8,7 +8,7 @@ class Switch : public Device {
 
 private:
 
-    // MAC Address Table
+   
     unordered_map<string, Device*> macTable;
 
 public:

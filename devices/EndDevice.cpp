@@ -2,6 +2,7 @@
 #include "EndDevice.h"
 #include "../network/Channel.h"
 #include "../network/AckBuffer.h"
+#include "../network/NetworkPacket.h"
 #include <algorithm>
 #include <iostream>
 #include <random>
@@ -24,19 +25,54 @@ namespace {
     }
 }
 
-EndDevice::EndDevice(string id, string mac) : Device(id)
+namespace {
+    string summarizePayload(const string& payload) {
+        string preview = payload.substr(0, 48);
+
+        for (char& ch : preview) {
+            if (ch == '\n') {
+                ch = ' ';
+            }
+        }
+
+        if (payload.size() > preview.size()) {
+            preview += "...";
+        }
+
+        return preview;
+    }
+}
+
+EndDevice::EndDevice(string id, string mac, string ip) : Device(id), applicationLayer(id), networkLayer(ip)
 {
     macAddress = mac;
-    nextSeq = 0;
-    base = 0;
+    ipAddress = ip;
+    Sn = 0;
+    Sf = 0;
     windowSize = 3;
     expectedSeq = 0;
     lastAckSent = -1;
 }
 
-string EndDevice::getMAC()
+string EndDevice::getMAC() const
 {
     return macAddress;
+}
+
+string EndDevice::getIP() const
+{
+    return ipAddress;
+}
+
+void EndDevice::setIPAddress(const string& ip)
+{
+    ipAddress = ip;
+    networkLayer.setLocalIP(ip);
+}
+
+void EndDevice::addRoute(const string& destinationIP, const string& nextHopMAC)
+{
+    networkLayer.addRoute(destinationIP, nextHopMAC);
 }
 
 bool EndDevice::transmitFrame(const Frame& frame, bool retransmission)
@@ -63,7 +99,7 @@ bool EndDevice::transmitFrame(const Frame& frame, bool retransmission)
              << (retransmission ? "retransmitting" : "sending")
              << " frame SEQ=" << frame.sequenceNumber
              << " DEST=" << frame.destinationMAC
-             << " DATA=" << frame.payload << endl;
+               << " DATA=" << summarizePayload(frame.payload) << endl;
 
         if (Channel::detectCollision())
         {
@@ -120,18 +156,38 @@ void EndDevice::queueACK(const string& destMAC, int ackNumber, bool duplicateACK
 
 void EndDevice::send(string data, string destMAC)
 {
-    if (nextSeq >= base + windowSize)
+    if (Sn >= Sf + windowSize)
     {
         cout << "[" << id << "] window full, waiting for ACK\n";
         return;
     }
 
-    Frame frame(macAddress, destMAC, data, nextSeq);
+    Frame frame(macAddress, destMAC, data, Sn);
     if (transmitFrame(frame))
     {
         sendWindow.emplace(frame.sequenceNumber, frame);
-        nextSeq++;
+        Sn++;
     }
+}
+
+void EndDevice::sendApplicationData(const string& destinationIP, const string& data)
+{
+    string nextHopMAC = networkLayer.resolveNextHopMAC(destinationIP);
+
+    if (nextHopMAC.empty())
+    {
+        cout << "[" << id << "] no route to destination IP "
+             << destinationIP << endl;
+        return;
+    }
+
+    ApplicationMessage message = applicationLayer.composeMessage(ipAddress, destinationIP, data);
+    NetworkPacket packet = networkLayer.buildPacket(message);
+
+    cout << "[" << id << "] application layer sending to IP "
+         << destinationIP << endl;
+
+    send(packet.serialize(), nextHopMAC);
 }
 
 void EndDevice::timeout()
@@ -142,12 +198,12 @@ void EndDevice::timeout()
         return;
     }
 
-    cout << "[" << id << "] timeout for SEQ=" << base
+    cout << "[" << id << "] timeout for SEQ=" << Sf
          << ", Go-Back-N retransmitting all outstanding frames\n";
 
     for (const auto& entry : sendWindow)
     {
-        if (entry.first >= base)
+        if (entry.first >= Sf)
         {
             if (!transmitFrame(entry.second, true))
             {
@@ -173,7 +229,7 @@ void EndDevice::receive(Frame frame, Device *sender)
         cout << "[" << id << "] received ACK for SEQ="
              << frame.sequenceNumber << endl;
 
-        if (frame.sequenceNumber < base)
+        if (frame.sequenceNumber < Sf)
         {
             cout << "[" << id << "] stale cumulative ACK ignored\n";
             return;
@@ -191,10 +247,10 @@ void EndDevice::receive(Frame frame, Device *sender)
             }
         }
 
-        base = frame.sequenceNumber + 1;
+        Sf = frame.sequenceNumber + 1;
 
-        cout << "[" << id << "] window slides, new base = "
-             << base << endl;
+        cout << "[" << id << "] window slides, new Sf = "
+             << Sf << endl;
 
         return;
     }
@@ -204,15 +260,7 @@ void EndDevice::receive(Frame frame, Device *sender)
          << sender->getId() << endl;
 
     // parity check
-    int ones = 0;
-
-    for (char c : frame.payload)
-    {
-        if (c == '1')
-            ones++;
-    }
-
-    int computedParity = ones % 2;
+    int computedParity = computeParityBit(frame.payload);
 
     if (computedParity != frame.parityBit)
     {
@@ -224,7 +272,28 @@ void EndDevice::receive(Frame frame, Device *sender)
     if (frame.sequenceNumber == expectedSeq)
     {
         cout << "[SUCCESS] In-order frame received correctly\n";
-        cout << "Payload: " << frame.payload << endl;
+
+        NetworkPacket packet;
+
+        if (NetworkPacket::deserialize(frame.payload, packet))
+        {
+            cout << "[" << id << "] network layer received packet from IP "
+                 << packet.sourceIP << " to IP " << packet.destinationIP << endl;
+
+            if (!networkLayer.isLocalDestination(packet))
+            {
+                cout << "[" << id << "] packet discarded at network layer (wrong destination)\n";
+            }
+            else
+            {
+                ApplicationMessage message(packet.sourceIP, packet.destinationIP, packet.payload);
+                applicationLayer.deliverMessage(message);
+            }
+        }
+        else
+        {
+            cout << "Payload: " << frame.payload << endl;
+        }
 
         lastAckSent = frame.sequenceNumber;
         expectedSeq++;

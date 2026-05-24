@@ -23,14 +23,19 @@
 #define ENDDEVICE_H
 
 #include "Device.h"
+#include "../application/ApplicationLayer.h"
+#include "../network/NetworkLayer.h"
 #include <map>
 
 class EndDevice : public Device {
 
 private:
     string macAddress;
-    int nextSeq;
-    int base;         // start of window
+    string ipAddress;
+    ApplicationLayer applicationLayer;
+    NetworkLayer networkLayer;
+    int Sn;
+    int Sf;         // start of window
     int windowSize;   // window size
     int expectedSeq;
     int lastAckSent;
@@ -40,12 +45,16 @@ private:
     void queueACK(const string& destMAC, int ackNumber, bool duplicateACK = false);
 
 public:
-    EndDevice(string id, string mac);
+    EndDevice(string id, string mac, string ip = "");
 
-    string getMAC();
+    string getMAC() const;
+    string getIP() const;
+    void setIPAddress(const string& ip);
+    void addRoute(const string& destinationIP, const string& nextHopMAC);
 
     // send now uses destination MAC
     void send(string data, string destMAC);
+    void sendApplicationData(const string& destinationIP, const string& data);
     void timeout();
 
     // UPDATED receive

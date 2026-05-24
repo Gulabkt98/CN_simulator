@@ -2,31 +2,235 @@ Important Design Choices (very important for future steps)
 
 for compiling :
 ```
-g++ main.cpp devices/*.cpp network/*.cpp -std=c++17 -o simulator.exe
+g++ main.cpp devices/*.cpp application/*.cpp network/*.cpp -std=c++17 -o simulator.exe
+```
+for running :
 ```
 for running :
 ```
 .\simulator.exe
 ```
 
+## **PROJECT COMPLETION STATUS**
 
+All **Submission 1, 2, and 3** requirements have been implemented and tested.
+
+### **SUBMISSION 1: Physical & Data Link Layers** ✅
+- **Physical Layer:**
+  - Device hierarchy (Device → EndDevice, Hub, Switch, Bridge, Router)
+  - Star topology with devices and hubs
+  - Frame-based communication
+
+- **Data Link Layer:**
+  - Frame structure with parity bits
+  - CSMA/CD protocol with collision detection, backoff, 16-retry limit
+  - Go-Back-N sliding window flow control with cumulative ACKs
+  - Switch with MAC learning and flooding
+  - **Bridge class** with MAC table management and forwarding
+  - **Topology Analysis:** Collision domain and Broadcast domain reporting
+
+### **SUBMISSION 2: Network Layer** ✅
+- **IP Addressing:**
+  - IPv4 address parsing (dotted decimal)
+  - **CIDR notation support** (/8 to /32 subnet masks)
+  - Network membership testing
+
+- **Routing:**
+  - **Longest-prefix matching** for most specific route selection
+  - Dynamic routing table with CIDR support
+  - Route add/remove/lookup operations
+  - **Routing Table display** with metrics
+
+- **ARP (Address Resolution Protocol):**
+  - ARP cache for IP↔MAC mappings
+  - Cache lookup and entry management
+  - ARP message serialization
+
+- **Router:**
+  - Multi-hop packet forwarding
+  - TTL decrement
+  - Reverse path learning for ACKs
+  - Network packet serialization/deserialization
+
+### **SUBMISSION 3: Transport & Application Layers** ✅
+- **Transport Layer:**
+  - Transport segments with port numbers (16-bit source and destination ports)
+  - Port-based demultiplexing
+  - Service handler registration
+  - Sliding-window support (reusable from Data Link layer)
+
+- **Application Services:**
+  - **Echo Service** (Port 7): Echo-request/echo-reply
+  - **File Transfer Service** (Port 21): PUT/GET file operations with content transfer
+  - Service multiplexing by port
+
+- **Application Layer:**
+  - Application message composition and delivery
+  - Multi-layer packet encapsulation (Application → Network → Data Link → Physical)
+
+---
+
+## **PROJECT STRUCTURE**
+
+```
+project_CN/
+│
+├── main.cpp                              (Master demo with 15 tests)
+├── readme.md                            (This file)
+│
+├── devices/
+│   ├── Device.h / Device.cpp            (Base device class)
+│   ├── EndDevice.h / EndDevice.cpp      (Host with IP, MAC, network stack)
+│   ├── Hub.h / Hub.cpp                  (Hub for broadcast)
+│   ├── Switch.h / Switch.cpp            (Switch with MAC learning)
+│   ├── Bridge.h / Bridge.cpp            (Bridge with domain analysis)
+│   └── Router.h / Router.cpp            (Router for multi-hop forwarding)
+│
+├── network/
+│   ├── Frame.h                          (Data Link frame with parity)
+│   ├── Channel.h / Channel.cpp          (CSMA/CD & collision simulation)
+│   ├── AckBuffer.h / AckBuffer.cpp      (ACK queuing)
+│   ├── NetworkPacket.h                  (IP packet structure)
+│   ├── NetworkLayer.h / NetworkLayer.cpp (IP routing & forwarding)
+│   ├── TopologyAnalysis.h / TopologyAnalysis.cpp (Domain reporting)
+│   ├── ARP.h                            (ARP cache & messages)
+│   ├── IPv4CIDR.h                       (CIDR parsing & subnet matching)
+│   └── RoutingTable.h                   (Longest-prefix routing)
+│
+├── transport/
+│   ├── TransportSegment.h               (Transport layer segment)
+│   └── TransportLayer.h                 (Port-based demultiplexing)
+│
+└── application/
+    ├── ApplicationMessage.h             (Application message structure)
+    ├── ApplicationLayer.h / ApplicationLayer.cpp (App layer logic)
+    └── ApplicationServices.h            (Echo & FTP services)
+```
+
+---
+
+## **KEY FEATURES & CONCEPTS**
+
+### **CSMA/CD (Carrier Sense Multiple Access with Collision Detection)**
+- Devices sense carrier before transmission
+- Detect collisions and jam signal
+- Binary exponential backoff (0 to 2^retries - 1)
+- Retry limit: 16 attempts
+
+### **Go-Back-N Flow Control**
+- Sender window (base to base+N-1)
+- Cumulative ACKs
+- Timeout-based retransmission
+- Duplicate ACK handling
+
+### **Bridge & Domain Analysis**
+- Bridge learns MAC addresses on each port
+- Unicast forwarding for known MACs
+- Flooding for unknown MACs
+- Collision domain: directly connected devices
+- Broadcast domain: reachable by flooding
+
+### **CIDR & Longest-Prefix Routing**
+- CIDR format: X.X.X.X/Y (Y = prefix bits)
+- Subnet mask calculation
+- Longest-prefix match for route selection
+- More specific routes take priority
+
+### **ARP Protocol**
+- IP → MAC address resolution
+- Cache-based lookup
+- ARP message structure with request/reply types
+
+### **Transport Layer Services**
+- Port-based multiplexing (source and destination ports)
+- Service handlers registered per port
+- Echo service for connectivity testing
+- File Transfer service (PUT/GET) for data exchange
+
+### **Multi-Layer Packet Encapsulation**
+- Application Message (data)
+  → Network Packet (IP header + payload)
+    → Frame (MAC header + network packet)
+      → Physical transmission
+
+---
+
+## **STEP-BY-STEP IMPLEMENTATION SUMMARY**
+
+| Step | Layer | Feature | Status |
+|------|-------|---------|--------|
+| 1-3 | Physical | Device, EndDevice, Hub, Star topology | ✅ |
+| 4 | Data Link | Frame structure with MAC and data | ✅ |
+| 5 | Data Link | Switch with MAC learning & flooding | ✅ |
+| 6 | Data Link | Parity bit error detection | ✅ |
+| 7 | Data Link | CSMA/CD collision handling | ✅ |
+| 8 | Data Link | Go-Back-N sliding window | ✅ |
+| 9 | Network | Basic routing & Network layer | ✅ |
+| 10 | Network | Multi-hop routing with Router | ✅ |
+| **11** | **Network** | **Bridge & Domain Analysis (Submission 1)** | **✅** |
+| **12** | **Network** | **CIDR IPv4 & Longest-Prefix (Submission 2)** | **✅** |
+| **13** | **Network** | **ARP Protocol (Submission 2)** | **✅** |
+| **14** | **Transport** | **Port-Based Demultiplexing (Submission 3)** | **✅** |
+| **15** | **Application** | **Echo & File Transfer Services (Submission 3)** | **✅** |
+
+---
+
+## **COMPILATION & EXECUTION**
+
+**Compile:**
+```bash
+g++ main.cpp devices/*.cpp application/*.cpp network/*.cpp -std=c++17 -o simulator.exe
+```
+
+**Run:**
+```bash
+.\simulator.exe
+```
+
+**Expected Output:**
+Tests 1-7: CSMA/CD and Go-Back-N legacy protocol tests
+Tests 8-9: Multi-hop routing with Network and Application layers
+Test 10: Bridge MAC learning and topology analysis
+Tests 11-13: CIDR, longest-prefix routing, ARP protocol
+Tests 14-15: Transport layer echo and file transfer services
+
+---
+
+## **COMPLIANCE WITH PROFESSOR REQUIREMENTS**
+
+✅ **Submission 1:** Star topology, CSMA/CD, Go-Back-N, Data Link frame, Switch MAC learning, **Bridge with domain reporting**
+✅ **Submission 2:** Network layer IP routing, **CIDR parsing, longest-prefix matching, ARP protocol**, routing table management
+✅ **Submission 3:** Application layer, **Transport layer with ports**, **Echo service**, **File Transfer service**
+
+All requirements met and validated through comprehensive simulation.
 
 ```
 project_CN/
 │
 ├── main.cpp
-│
+├── application/
+│   ├── ApplicationLayer.h
+│   ├── ApplicationLayer.cpp
+│   └── ApplicationMessage.h
 ├── devices/
 │   ├── Device.h
 │   ├── Device.cpp
 │   ├── EndDevice.h
 │   ├── EndDevice.cpp
+│   ├── Router.h
+│   ├── Router.cpp
 │   ├── Hub.h
 │   └── Hub.cpp
 │
 └── network/
-    ├── Frame.h
-    └── Frame.cpp      
+   ├── Frame.h
+   ├── Channel.h
+   ├── Channel.cpp
+   ├── AckBuffer.h
+   ├── AckBuffer.cpp
+   ├── NetworkLayer.h
+   ├── NetworkLayer.cpp
+   └── NetworkPacket.h
 ```
 
 step-1
@@ -87,6 +291,14 @@ timeout-based retransmission of all unacknowledged frames
 Current simulator keeps both protocols together:
 CSMA/CD for access control before each frame transmission
 Go-Back-N for flow control and retransmission after transmission
+
+//step 9 network layer and application layer
+Added IP-based network packets above the existing frame layer.
+Application messages are created at the application layer, wrapped into network packets, and then sent through the existing data link and physical layers.
+
+//step 10 multi-hop routing simulation
+Added a router that forwards packets between two hub segments and learns the return path for ACKs.
+The routed demo uses a fresh A2/B2 pair so the original CSMA/CD and Go-Back-N tests stay independent.
 
 
 CSMA/CD protocol flow now implemented in the simulator:

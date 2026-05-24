@@ -5,6 +5,24 @@
 
 using namespace std;
 
+inline int computeParityBit(const string& data)
+{
+    int ones = 0;
+
+    for (unsigned char ch : data)
+    {
+        unsigned char value = ch;
+
+        while (value != 0)
+        {
+            ones += value & 1;
+            value >>= 1;
+        }
+    }
+
+    return ones % 2;
+}
+
 class Frame {
 
 public:
@@ -25,12 +43,7 @@ public:
         sequenceNumber = seq;
         isACK = ack;
 
-        // compute parity for error detection
-        int ones = 0;
-        for(char c : payload) {
-            if(c == '1') ones++;
-        }
-        parityBit = ones % 2;  // even parity
+        parityBit = computeParityBit(payload);
     }
 
 };
