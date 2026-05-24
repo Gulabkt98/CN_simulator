@@ -1,5 +1,5 @@
 #include "Channel.h"
-#include "../devices/Device.h"
+#include "../physical/Device.h"
 #include <iostream>
 
 bool Channel::busy = false;

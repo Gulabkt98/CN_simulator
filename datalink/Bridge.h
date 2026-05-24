@@ -6,7 +6,7 @@
 #include <set>
 #include <map>
 #include <string>
-#include "Device.h"
+#include "../physical/Device.h"
 
 using namespace std;
 

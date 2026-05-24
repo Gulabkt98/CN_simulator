@@ -1,7 +1,7 @@
 #ifndef ROUTER_H
 #define ROUTER_H
 
-#include "Device.h"
+#include "../physical/Device.h"
 #include <map>
 
 class Router : public Device {

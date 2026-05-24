@@ -1,5 +1,5 @@
 #include "Router.h"
-#include "../network/NetworkPacket.h"
+#include "NetworkPacket.h"
 #include <iostream>
 
 using namespace std;

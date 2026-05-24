@@ -7,7 +7,7 @@
 #include <map>
 #include <string>
 #include <queue>
-#include "../devices/Device.h"
+#include "../physical/Device.h"
 
 using namespace std;
 

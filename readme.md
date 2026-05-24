@@ -2,7 +2,7 @@ Important Design Choices (very important for future steps)
 
 for compiling :
 ```
-g++ main.cpp devices/*.cpp application/*.cpp network/*.cpp transport/*.cpp -std=c++17 -o simulator.exe
+g++ main.cpp physical/*.cpp datalink/*.cpp network/*.cpp transport/*.cpp application/*.cpp -std=c++17 -o simulator.exe
 ```
 for running :
 ```
@@ -78,21 +78,23 @@ project_CN/
 ├── main.cpp                              (Master demo with 15 tests)
 ├── readme.md                            (This file)
 │
-├── devices/                              (Physical + Data Link layer devices)
+├── physical/                             (Physical layer)
 │   ├── Device.h / Device.cpp            (Base device abstraction)
 │   ├── EndDevice.h / EndDevice.cpp      (CSMA/CD + Go-Back-N host)
-│   ├── Hub.h / Hub.cpp                  (Broadcast hub)
-│   ├── Switch.h / Switch.cpp            (MAC-learning switch)
-│   ├── Bridge.h / Bridge.cpp            (Bridge forwarding + domain analysis)
-│   └── Router.h / Router.cpp            (IP forwarding device)
+│   └── Hub.h / Hub.cpp                  (Broadcast hub)
 │
-├── network/                              (Network layer)
-│   ├── Frame.h                          (Data link frame)
+├── datalink/                             (Data Link layer)
+│   ├── Frame.h                          (Frame structure)
 │   ├── Channel.h / Channel.cpp          (CSMA/CD channel state)
 │   ├── AckBuffer.h / AckBuffer.cpp      (ACK queue)
+│   ├── Switch.h / Switch.cpp            (MAC-learning switch)
+│   ├── Bridge.h / Bridge.cpp            (Bridge forwarding + domain analysis)
+│   └── TopologyAnalysis.h / TopologyAnalysis.cpp (Collision/broadcast domains)
+│
+├── network/                              (Network layer)
+│   ├── Router.h / Router.cpp            (IP forwarding device)
 │   ├── NetworkPacket.h / NetworkPacket.cpp (IP packet model)
 │   ├── NetworkLayer.h / NetworkLayer.cpp (Packet preparation)
-│   ├── TopologyAnalysis.h / TopologyAnalysis.cpp (Collision/broadcast domains)
 │   ├── IPv4CIDR.h / IPv4CIDR.cpp        (CIDR parsing and matching)
 │   ├── RoutingTable.h / RoutingTable.cpp (Longest-prefix routing table)
 │   └── ARP.h / ARP.cpp                  (ARP cache and messages)

@@ -1,7 +1,7 @@
 #ifndef ACKBUFFER_H
 #define ACKBUFFER_H
 
-#include "../network/Frame.h"
+#include "Frame.h"
 #include <queue>
 
 class AckBuffer {

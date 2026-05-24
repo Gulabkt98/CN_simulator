@@ -1,7 +1,7 @@
 
 #include "EndDevice.h"
-#include "../network/Channel.h"
-#include "../network/AckBuffer.h"
+#include "../datalink/Channel.h"
+#include "../datalink/AckBuffer.h"
 #include "../network/NetworkPacket.h"
 #include <algorithm>
 #include <iostream>
