@@ -1,8 +1,8 @@
 #ifndef TRANSPORT_SEGMENT_H
 #define TRANSPORT_SEGMENT_H
 
+#include <cstdint>
 #include <string>
-#include <cstring>
 
 using namespace std;
 
@@ -24,52 +24,13 @@ struct TransportSegment {
           acknowledgmentNumber(0), hasAck(false) {}
     
     TransportSegment(uint16_t srcPort, uint16_t dstPort, 
-                    uint16_t seqNum, string data, bool ack = false)
-        : sourcePort(srcPort), destinationPort(dstPort),
-          sequenceNumber(seqNum), acknowledgmentNumber(0),
-          hasAck(ack), payload(data) {}
-    
+                    uint16_t seqNum, string data, bool ack = false);
+
     // Serialize to string for transmission
-    string serialize() const {
-        string result;
-        result += to_string(sourcePort) + "|";
-        result += to_string(destinationPort) + "|";
-        result += to_string(sequenceNumber) + "|";
-        result += to_string(acknowledgmentNumber) + "|";
-        result += (hasAck ? "1" : "0") + string("|");
-        result += payload;
-        return result;
-    }
-    
+    string serialize() const;
+
     // Deserialize from string
-    static TransportSegment deserialize(const string& data) {
-        TransportSegment seg;
-        size_t pos = 0;
-        size_t next;
-        
-        next = data.find("|", pos);
-        seg.sourcePort = stoi(data.substr(pos, next - pos));
-        pos = next + 1;
-        
-        next = data.find("|", pos);
-        seg.destinationPort = stoi(data.substr(pos, next - pos));
-        pos = next + 1;
-        
-        next = data.find("|", pos);
-        seg.sequenceNumber = stoi(data.substr(pos, next - pos));
-        pos = next + 1;
-        
-        next = data.find("|", pos);
-        seg.acknowledgmentNumber = stoi(data.substr(pos, next - pos));
-        pos = next + 1;
-        
-        next = data.find("|", pos);
-        seg.hasAck = (data.substr(pos, next - pos) == "1");
-        pos = next + 1;
-        
-        seg.payload = data.substr(pos);
-        return seg;
-    }
+    static TransportSegment deserialize(const string& data);
 };
 
 #endif

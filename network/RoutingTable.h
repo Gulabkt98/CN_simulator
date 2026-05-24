@@ -18,9 +18,7 @@ struct RouteEntry {
     RouteEntry() : metric(1) {}
     
     RouteEntry(IPv4CIDR dest, string nextIP, string nextMAC, 
-               int met = 1, string iface = "")
-        : destination(dest), nextHopIP(nextIP), nextHopMAC(nextMAC),
-          metric(met), interface(iface) {}
+                             int met = 1, string iface = "");
 };
 
 class RoutingTable {
@@ -31,63 +29,16 @@ public:
     RoutingTable() = default;
     
     void addRoute(IPv4CIDR destination, string nextHopIP, 
-                  string nextHopMAC, int metric = 1) {
-        RouteEntry entry(destination, nextHopIP, nextHopMAC, metric);
-        routes.push_back(entry);
-        cout << "[Routing Table] Added route: " << destination.toString() 
-             << " via " << nextHopIP << " (" << nextHopMAC << ")" << endl;
-    }
+                  string nextHopMAC, int metric = 1);
     
-    void removeRoute(IPv4CIDR destination) {
-        for (auto it = routes.begin(); it != routes.end(); ++it) {
-            if (it->destination == destination) {
-                routes.erase(it);
-                cout << "[Routing Table] Removed route: " 
-                     << destination.toString() << endl;
-                return;
-            }
-        }
-    }
+    void removeRoute(IPv4CIDR destination);
     
     // Longest-prefix matching: find the route with the most specific prefix
-    RouteEntry* lookup(IPv4Address destIP) {
-        RouteEntry* bestMatch = nullptr;
-        int bestPrefixLength = -1;
-        
-        for (auto& route : routes) {
-            if (route.destination.contains(destIP)) {
-                if (route.destination.prefixLength > bestPrefixLength) {
-                    bestMatch = &route;
-                    bestPrefixLength = route.destination.prefixLength;
-                }
-            }
-        }
-        
-        return bestMatch;
-    }
+    RouteEntry* lookup(IPv4Address destIP);
     
-    void displayTable() const {
-        cout << "\n========== ROUTING TABLE ==========\n";
-        if (routes.empty()) {
-            cout << "  (empty)\n";
-        } else {
-            for (const auto& route : routes) {
-                cout << "  Dest: " << route.destination.toString()
-                     << " | Next Hop: " << route.nextHopIP
-                     << " (" << route.nextHopMAC << ")"
-                     << " | Metric: " << route.metric;
-                if (!route.interface.empty()) {
-                    cout << " | Interface: " << route.interface;
-                }
-                cout << endl;
-            }
-        }
-        cout << "===================================\n";
-    }
+    void displayTable() const;
     
-    vector<RouteEntry> getRoutes() const {
-        return routes;
-    }
+    vector<RouteEntry> getRoutes() const;
 };
 
 #endif

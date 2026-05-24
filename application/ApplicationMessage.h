@@ -12,12 +12,7 @@ public:
     string destinationIP;
     string payload;
 
-    ApplicationMessage(string src = "", string dest = "", string data = "")
-    {
-        sourceIP = src;
-        destinationIP = dest;
-        payload = data;
-    }
+    ApplicationMessage(string src = "", string dest = "", string data = "");
 };
 
 #endif

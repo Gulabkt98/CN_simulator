@@ -2,7 +2,7 @@ Important Design Choices (very important for future steps)
 
 for compiling :
 ```
-g++ main.cpp devices/*.cpp application/*.cpp network/*.cpp -std=c++17 -o simulator.exe
+g++ main.cpp devices/*.cpp application/*.cpp network/*.cpp transport/*.cpp -std=c++17 -o simulator.exe
 ```
 for running :
 ```
@@ -78,34 +78,42 @@ project_CN/
 ├── main.cpp                              (Master demo with 15 tests)
 ├── readme.md                            (This file)
 │
-├── devices/
-│   ├── Device.h / Device.cpp            (Base device class)
-│   ├── EndDevice.h / EndDevice.cpp      (Host with IP, MAC, network stack)
-│   ├── Hub.h / Hub.cpp                  (Hub for broadcast)
-│   ├── Switch.h / Switch.cpp            (Switch with MAC learning)
-│   ├── Bridge.h / Bridge.cpp            (Bridge with domain analysis)
-│   └── Router.h / Router.cpp            (Router for multi-hop forwarding)
+├── devices/                              (Physical + Data Link layer devices)
+│   ├── Device.h / Device.cpp            (Base device abstraction)
+│   ├── EndDevice.h / EndDevice.cpp      (CSMA/CD + Go-Back-N host)
+│   ├── Hub.h / Hub.cpp                  (Broadcast hub)
+│   ├── Switch.h / Switch.cpp            (MAC-learning switch)
+│   ├── Bridge.h / Bridge.cpp            (Bridge forwarding + domain analysis)
+│   └── Router.h / Router.cpp            (IP forwarding device)
 │
-├── network/
-│   ├── Frame.h                          (Data Link frame with parity)
-│   ├── Channel.h / Channel.cpp          (CSMA/CD & collision simulation)
-│   ├── AckBuffer.h / AckBuffer.cpp      (ACK queuing)
-│   ├── NetworkPacket.h                  (IP packet structure)
-│   ├── NetworkLayer.h / NetworkLayer.cpp (IP routing & forwarding)
-│   ├── TopologyAnalysis.h / TopologyAnalysis.cpp (Domain reporting)
-│   ├── ARP.h                            (ARP cache & messages)
-│   ├── IPv4CIDR.h                       (CIDR parsing & subnet matching)
-│   └── RoutingTable.h                   (Longest-prefix routing)
+├── network/                              (Network layer)
+│   ├── Frame.h                          (Data link frame)
+│   ├── Channel.h / Channel.cpp          (CSMA/CD channel state)
+│   ├── AckBuffer.h / AckBuffer.cpp      (ACK queue)
+│   ├── NetworkPacket.h / NetworkPacket.cpp (IP packet model)
+│   ├── NetworkLayer.h / NetworkLayer.cpp (Packet preparation)
+│   ├── TopologyAnalysis.h / TopologyAnalysis.cpp (Collision/broadcast domains)
+│   ├── IPv4CIDR.h / IPv4CIDR.cpp        (CIDR parsing and matching)
+│   ├── RoutingTable.h / RoutingTable.cpp (Longest-prefix routing table)
+│   └── ARP.h / ARP.cpp                  (ARP cache and messages)
 │
-├── transport/
-│   ├── TransportSegment.h               (Transport layer segment)
-│   └── TransportLayer.h                 (Port-based demultiplexing)
+├── transport/                            (Transport layer)
+│   ├── TransportSegment.h / TransportSegment.cpp (Port and sequence fields)
+│   └── TransportLayer.h / TransportLayer.cpp     (Port demultiplexing)
 │
-└── application/
-    ├── ApplicationMessage.h             (Application message structure)
-    ├── ApplicationLayer.h / ApplicationLayer.cpp (App layer logic)
-    └── ApplicationServices.h            (Echo & FTP services)
+└── application/                          (Application layer)
+  ├── ApplicationMessage.h / ApplicationMessage.cpp (App payload wrapper)
+  ├── ApplicationLayer.h / ApplicationLayer.cpp     (Message compose/deliver)
+  └── ApplicationServices.h / ApplicationServices.cpp (Echo + FTP handlers)
 ```
+
+### **Layer-wise file map**
+
+- `devices/` holds the physical and data link device behavior.
+- `network/` holds packet, routing, CIDR, and ARP logic.
+- `transport/` holds port-based segment handling and demultiplexing.
+- `application/` holds application payload objects and service handlers.
+- `main.cpp` only wires the layers together and runs the test scenarios.
 
 ---
 
