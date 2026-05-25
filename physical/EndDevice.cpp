@@ -170,6 +170,7 @@ void EndDevice::send(string data, string destMAC)
     }
 }
 
+
 void EndDevice::sendApplicationData(const string& destinationIP, const string& data)
 {
     string nextHopMAC = networkLayer.resolveNextHopMAC(destinationIP);
